@@ -1,3 +1,8 @@
+from social.exceptions import (
+    AuthFailed,
+    AuthCanceled,
+    )
+
 from social.apps.actions import (
     do_auth,
     do_complete,
@@ -7,14 +12,12 @@ from strategy import PyramidStrategy
 
 class AuthenticationComplete(object):
     """An AuthenticationComplete context object"""
-
     def __init__(self, *args, **kwargs):
         pass
 
 
 class AuthenticationDenied(object):
     """An AuthenticationDenied context object"""
-
     def __init__(self, *args, **kwargs):
         pass
 
@@ -50,6 +53,7 @@ def login(request):
     name, provider = locate_provider(request)
     settings = strategy_settings(request, name)
     strategy = PyramidStrategy(backend=provider, request=request,
+                               storage=None,
                                redirect_uri=settings.get('REDIRECT_URI'))
     strategy.settings = settings
     do_auth(strategy)
@@ -58,9 +62,13 @@ def callback(request):
     name, provider = locate_provider(request)
     settings = strategy_settings(request, name)
     strategy = PyramidStrategy(backend=provider, request=request,
+                               storage=None,
                                redirect_uri=settings.get('REDIRECT_URI'))
     strategy.settings = settings
-    do_complete(strategy, login=request.session.get('user_id'))
+    try:
+        do_complete(strategy, login=request.session.get('user_id'))
+    except (AuthFailed, AuthCanceled):
+        return AuthenticationDenied(provider_name=name)
 
 def includeme(config):
     config.add_route('psa.callback', '/{provider}/callback')

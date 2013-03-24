@@ -37,6 +37,7 @@ class PyramidStrategy(BaseStrategy):
             return None
 
     def authenticate(self, *args, **kwargs):
+        """At this point we have all of the details from the request ..."""
         kwargs['strategy'] = self
         kwargs['storage'] = self.storage
         kwargs['backend'] = self.backend
