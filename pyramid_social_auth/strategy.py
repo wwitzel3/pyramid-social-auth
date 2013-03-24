@@ -7,7 +7,7 @@ class PyramidStrategy(BaseStrategy):
         raise HTTPFound(location=url)
 
     def get_setting(self, name):
-        return getattr(self.settings, name)
+        return self.settings[name]
 
     def html(self, content):
         pass
@@ -16,11 +16,7 @@ class PyramidStrategy(BaseStrategy):
         pass
 
     def request_data(self, merge=True):
-        if merge:
-            merged = self.request.POST
-            merged.update(self.request.GET)
-            return merged
-        elif self.request.method == 'POST':
+        if self.request.method == 'POST':
             return self.request.POST
         else:
             return self.request.GET
@@ -29,19 +25,21 @@ class PyramidStrategy(BaseStrategy):
         pass
 
     def session_get(self, name, default=None):
-        pass
+        return self.request.session.get(name, default)
 
     def session_set(self, name, value):
-        pass
+        self.request.session[name] = value
 
     def session_pop(self, name):
-        pass
+        try:
+            return self.request.session.pop(name)
+        except KeyError:
+            return None
 
     def authenticate(self, *args, **kwargs):
         kwargs['strategy'] = self
         kwargs['storage'] = self.storage
         kwargs['backend'] = self.backend
-        import pdb; pdb.set_trace()
         return self.backend.authenticate(*args, **kwargs)
 
     def build_absolute_uri(self, path=None):

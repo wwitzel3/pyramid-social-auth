@@ -4,7 +4,6 @@ import pyramid_social_auth as psa
 
 @view_config(name='login', renderer='example:templates/login.mako')
 def login(request):
-
     return {
         'providers': request.registry.settings['login_providers'],
     }
